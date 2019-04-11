@@ -22,6 +22,7 @@ class Arena:
     #b is distance from the nearest wall in cm
     #returns coordinates in y,x format
     def vehicle_location(self, corner, c, wall_direction, b):
+        c+=6 #thickness of the sticks in the corners is 6cm
         c *= self.scale
         b *= self.scale
         a = self.scale * int(round(math.sqrt((c**2) - (b**2)), 0))
@@ -86,4 +87,4 @@ def distance_coordinates(a, b):
         return math.hypot(a.first - a.second, b.first - b.second)
 
 arena = Arena()
-print(arena.vehicle_location(1,25,'L',10))
+print(arena.vehicle_location(4,76,'L',45))
