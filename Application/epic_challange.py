@@ -5,14 +5,11 @@ Created on Fri Mar 29 20:32:46 2019
 @author: roman
 """
 
-import matplotlib.pyplot as plt
 import numpy as np
 import math
-import tsp
 
 class Arena:
     def __init__(self, size=250, scale=1, start=(249, 125)):
-        self.matrix = np.zeros((size, size))
         self.size = size
         self.scale = scale
         self.objects = [start]
@@ -71,12 +68,12 @@ class Arena:
     #distance is the distance of the new object from out vehicle
     #correct location of the vehicle has to be stored in self.vehicle
     #TODO
-    def add_by_objects(self, obj, angle, distance)
+    def add_by_objects(self, obj, angle, distance):
         return
         
     def find_route(self):
-        t = tsp.tsp(self.objects)
-        print(t)
+        #use TSP from the other code here? 
+        return
 
 #calculate distance between two objects, given their distances (a, b) from the
 #vehicle and angle between them
@@ -87,3 +84,6 @@ def distance(self, a, b, angle):
 #calculates Euclidean distance between two coordinates
 def distance_coordinates(a, b):
         return math.hypot(a.first - a.second, b.first - b.second)
+
+arena = Arena()
+print(arena.vehicle_location(1,25,'L',10))
