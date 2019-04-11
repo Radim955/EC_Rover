@@ -63,6 +63,7 @@ class Arena:
             c = (self.size-1, self.size-1)
         #here we calculate the distance of the new obj from the corner
         obj_corn_dist = distance_coordinates(c, self.vehicle_loc)
+        """https://math.stackexchange.com/questions/543961/determine-third-point-of-triangle-when-two-points-and-all-sides-are-known """
 
     #obj takes coordinates of a known object as a touple
     #angle is the angle between the known object and a new object
@@ -73,7 +74,7 @@ class Arena:
         return
         
     def find_route(self):
-        #use TSP from the other code here? 
+        #use TSP solution from the other code here? 
         return
 
 #calculate distance between two objects, given their distances (a, b) from the
@@ -87,4 +88,6 @@ def distance_coordinates(a, b):
         return math.hypot(a.first - a.second, b.first - b.second)
 
 arena = Arena()
-print(arena.vehicle_location(4,76,'L',45))
+c_dist = 76
+print(arena.vehicle_location(4,c_dist,'L',45))
+
