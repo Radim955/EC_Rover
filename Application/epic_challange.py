@@ -7,6 +7,7 @@ Created on Fri Mar 29 20:32:46 2019
 
 import numpy as np
 import math
+from math import sin, cos, radians
 
 class Arena:
     def __init__(self, size=250, scale=1, start=(249, 125)):
@@ -53,28 +54,31 @@ class Arena:
     #angle is the angle between new object and the corner
     #TODO
     def add_by_corner(self, corner, c_dist, obj_name, obj_dist, angle):
-        if corner == 1:
-            c = (0,0)
-        elif corner == 2:
-            c = (0, self.size-1)
-        elif corner == 3:
-            c = (self.size-1, 0)
-        else:
-            c = (self.size-1, self.size-1)
+        corn = self.get_corner(corner)
         #here we calculate the distance of the new obj from the corner
         obj_c_dist = distance(c_dist, obj_dist, angle)
         """https://math.stackexchange.com/questions/543961/determine-third-point-of-triangle-when-two-points-and-all-sides-are-known """
         """https://www.triangle-calculator.com/?what=vc"""
-        AB = c_dist
-        BC = obj_dist
-        AC = obj_c_dist
+        #These lines calculate correct coordinates only if vehicle is at (0, c_dist)
+        c = AB = c_dist
+        a = BC = obj_dist
+        b = AC = obj_c_dist
         
-        Cy = int(round(((AB**2) + (AC**2) -(BC**2))/(2*AB),0))
-        Cx = int(round(math.sqrt((AC**2)-(Cy**2)), 0))
-        self.objects += [(Cx, Cy)]
-        print("Coordinates of object", obj_name,"are",Cy,Cx)
+        Cy = ((AB**2) + (AC**2) -(BC**2))/(2*AB)
+        Cx = math.sqrt((AC**2)-(Cy**2))
+
+        #Calculate rotation angle based on vehicle coordinates
+        theta = (self.vehicle_loc[0] - corn[0])/AB
+        theta = math.degrees(math.asin(theta))
+        
+        alpha = (self.vehicle_loc[1] - corn[1])/AB
+        aplha = math.degrees(math.acos(alpha))
+        
+        print(theta, aplha)
+        point = rotate_point((Cy, Cx), theta, (0,0)) 
+        self.objects += [point]
+        print("Coordinates of object", obj_name,"are",round(point[1],0),round(point[0],0))
         return(Cy, Cx)
-        
 
     #obj takes coordinates of a known object as a touple
     #angle is the angle between the known object and a new object
@@ -87,6 +91,16 @@ class Arena:
     def find_route(self):
         #use TSP solution from the other code here? 
         return
+    def get_corner(self, corner):
+        if corner == 1:
+            c = (0,0)
+        elif corner == 2:
+            c = (0, self.size-1)
+        elif corner == 3:
+            c = (self.size-1, 0)
+        else:
+            c = (self.size-1, self.size-1)
+        return c
 
 #calculate distance between two objects, given their distances (a, b) from the
 #vehicle and angle between them
@@ -99,7 +113,23 @@ def distance_coordinates(a, b):
         bnp = np.array(b)
         return np.linalg.norm(anp-bnp)
 
+def rotate_point(point, angle, center_point=(0, 0)):
+    """Rotates a point around center_point(origin by default)
+    Angle is in degrees.
+    Rotation is counter-clockwise
+    """
+    angle_rad = math.radians(angle % 360)
+    # Shift the point so that center_point becomes the origin
+    new_point = (point[0] - center_point[0], point[1] - center_point[1])
+    new_point = (new_point[0] * cos(angle_rad) - new_point[1] * sin(angle_rad),
+                 new_point[0] * sin(angle_rad) + new_point[1] * cos(angle_rad))
+    # Reverse the shifting we have done
+    new_point = (new_point[0] + center_point[0], new_point[1] + center_point[1])
+    return new_point
+
+#PLAYGROUND
 arena = Arena()
-arena.vehicle_loc = (33,44)
-arena.add_by_corner(1, 55, 'A', 33, 23)
+arena.vehicle_loc = (22,33)
+#                       c           a     angle B
+arena.add_by_corner(1, 39.661,'A',24.331 ,  24.228)
 
