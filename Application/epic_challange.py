@@ -62,9 +62,19 @@ class Arena:
         else:
             c = (self.size-1, self.size-1)
         #here we calculate the distance of the new obj from the corner
-        obj_corn_dist = distance_coordinates(c, self.vehicle_loc)
-        print(obj_corn_dist) 
+        obj_c_dist = distance(c_dist, obj_dist, angle)
         """https://math.stackexchange.com/questions/543961/determine-third-point-of-triangle-when-two-points-and-all-sides-are-known """
+        """https://www.triangle-calculator.com/?what=vc"""
+        AB = c_dist
+        BC = obj_dist
+        AC = obj_c_dist
+        
+        Cy = int(round(((AB**2) + (AC**2) -(BC**2))/(2*AB),0))
+        Cx = int(round(math.sqrt((AC**2)-(Cy**2)), 0))
+        self.objects += [(Cx, Cy)]
+        print("Coordinates of object", obj_name,"are",Cy,Cx)
+        return(Cy, Cx)
+        
 
     #obj takes coordinates of a known object as a touple
     #angle is the angle between the known object and a new object
@@ -80,9 +90,8 @@ class Arena:
 
 #calculate distance between two objects, given their distances (a, b) from the
 #vehicle and angle between them
-def distance(self, a, b, angle):
-        c = math.sqrt((a**2)+(b**2)-(2*a*b*(math.cos(math.radians(angle)))))
-        print(c)
+def distance(a, b, angle):
+        return math.sqrt((a**2)+(b**2)-(2*a*b*(math.cos(math.radians(angle)))))
 
 #calculates Euclidean distance between two coordinates
 def distance_coordinates(a, b):
@@ -91,6 +100,6 @@ def distance_coordinates(a, b):
         return np.linalg.norm(anp-bnp)
 
 arena = Arena()
-c_dist = 76
-print(arena.vehicle_location(4,c_dist,'L',45))
+arena.vehicle_loc = (33,44)
+arena.add_by_corner(1, 55, 'A', 33, 23)
 
