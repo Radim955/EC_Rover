@@ -14,6 +14,7 @@ class Arena:
         self.size = size
         self.scale = scale
         self.objects = [start]
+        self.object_names = ['S']
         self.vehicle_loc = start
 
     #corners are numbered 1..2  
@@ -55,6 +56,7 @@ class Arena:
     #TODO
     def add_by_corner(self, corner, c_dist, obj_name, obj_dist, angle):
         corn = self.get_corner(corner)
+        ref_point = corn
         #here we calculate the distance of the new obj from the corner
         obj_c_dist = distance(c_dist, obj_dist, angle)
         """https://math.stackexchange.com/questions/543961/determine-third-point-of-triangle-when-two-points-and-all-sides-are-known """
@@ -74,14 +76,18 @@ class Arena:
         """not sure if alpha or theta is correct angle, I used solution from:
     https://math.stackexchange.com/questions/158679/how-to-calculate-coordinates-of-third-point-in-a-triangle-2d-knowing-2-points
     second answer."""
-        theta = (self.vehicle_loc[0] - corn[0])/AB
-        theta = math.degrees(math.asin(theta))
+        m = (self.vehicle_loc[0] - ref_point[0])/AB
+        theta = math.degrees(math.asin(m))
         
-        alpha = (self.vehicle_loc[1] - corn[1])/AB
-        aplha = math.degrees(math.acos(alpha))
-        
-        point = rotate_point((Cy, Cx), theta, (0,0)) 
+        n = (self.vehicle_loc[1] - ref_point[1])/AB
+        alpha = math.degrees(math.acos(n))
+
+        theta = math.degrees(math.atan2(m, n))
+
+        point = rotate_point((Cx, Cy), theta, (0,0))
+        point = (point[1], point[0]) #I have no idea why we need to swap this but it works like that
         self.objects += [point]
+        self.object_names += [obj_name]
         #TODO: figure out solution for all corners (or any reference point), now it works only for (0,0)
         print("Coordinates of object", obj_name,"are",round(point[1],0),round(point[0],0))
         return point
@@ -107,7 +113,7 @@ class Arena:
             c = (self.size-1, 0)
         else:
             c = (self.size-1, self.size-1)
-        return c
+        return (c[1],c[0]) #it returned coordinates in (y, x) so I flip it here
 
 #calculate distance between two objects, given their distances (a, b) from the
 #vehicle and angle between them
@@ -139,5 +145,5 @@ def rotate_point(point, angle, center_point=(0, 0)):
 arena = Arena()
 arena.vehicle_loc = (22,33)
 #                       c           a     angle B
-arena.add_by_corner(1, 39.661,'A',24.331 ,  24.228)
+arena.add_by_corner(1, 39.661,'C',  27.803,  94)
 
