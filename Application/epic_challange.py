@@ -71,18 +71,14 @@ class Arena:
         Cy = ((AB**2) + (AC**2) -(BC**2))/(2*AB)
         Cx = math.sqrt((AC**2)-(Cy**2))
 
-        #Calculate rotation angle based on vehicle coordinates
-        #TODO
-        """not sure if alpha or theta is correct angle, I used solution from:
+        
+        """
     https://math.stackexchange.com/questions/158679/how-to-calculate-coordinates-of-third-point-in-a-triangle-2d-knowing-2-points
     second answer."""
-        m = (self.vehicle_loc[0] - ref_point[0])/AB
-        theta = math.degrees(math.asin(m))
-        
-        n = (self.vehicle_loc[1] - ref_point[1])/AB
-        alpha = math.degrees(math.acos(n))
-
-        theta = math.degrees(math.atan2(m, n))
+        #Calculate rotation angle based on vehicle coordinates
+        m = (self.vehicle_loc[0] - ref_point[0])/AB      #sin(x)
+        n = (self.vehicle_loc[1] - ref_point[1])/AB      #cos(x)
+        theta = math.degrees(math.atan2(m, n))           # x
 
         point = rotate_point((Cx, Cy), theta, (0,0))
         point = (point[1], point[0]) #I have no idea why we need to swap this but it works like that
