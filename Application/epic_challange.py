@@ -53,7 +53,6 @@ class Arena:
     #obj_name is the name (letter) of the object
     #obj_dist is distance of the new object from our vehicle
     #angle is the angle between new object and the corner
-    #TODO
     def add_by_corner(self, corner, c_dist, obj_name, obj_dist, angle):
         corn = self.get_corner(corner)
         ref_point = corn
@@ -88,7 +87,7 @@ class Arena:
         print("Coordinates of object", obj_name,"are",round(point[1],0),round(point[0],0))
         return point
 
-    #obj takes coordinates of a known object as a touple
+    #obj takes coordinates of a known object as a tuple
     #angle is the angle between the known object and a new object
     #distance is the distance of the new object from out vehicle
     #correct location of the vehicle has to be stored in self.vehicle
