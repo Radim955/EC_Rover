@@ -28,26 +28,29 @@ class Arena:
         c *= self.scale
         b *= self.scale
         a = self.scale * int(round(math.sqrt((c**2) - (b**2)), 0))
+        loc = (0,0)
         if corner == 1:
             if wall_direction == 'R':
-                return (b,a)
+                loc = (b,a)
             else:
-                return (a,b)
+                loc = (a,b)
         if corner == 2:
             if wall_direction == 'R':
-                return (a, self.size - b)
+                loc = (a, self.size - b)
             else:
-                return (b,self.size - a)
+                loc = (b,self.size - a)
         if corner == 3:
             if wall_direction == 'R':
-                return (self.size-a, b)
+                loc = (self.size-a, b)
             else:
-                return (self.size - b, a)
+                loc = (self.size - b, a)
         if corner == 4:
             if wall_direction == 'R':
-                return (self.size - b, self.size-a-1)
+                loc = (self.size - b, self.size-a-1)
             else:
-                return (self.size-a-1, self.size-b-1)
+                loc = (self.size-a-1, self.size-b-1)
+        self.vehicle_loc = loc
+        return loc #maybe this is also (y,x) and needs swap?
 
     #c_dist is distance of our vehicle from the corner
     #obj_name is the name (letter) of the object
