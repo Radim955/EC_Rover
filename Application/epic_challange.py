@@ -110,6 +110,10 @@ class Arena:
             c = (self.size-1, self.size-1)
         return (c[1],c[0]) #it returned coordinates in (y, x) so I flip it here
 
+    def get_names(self):
+        for i,a in enumerate(self.object_names):
+            print("%d --> %s" % (i, a))
+
 #calculate distance between two objects, given their distances (a, b) from the
 #vehicle and angle between them
 def distance(a, b, angle):
@@ -141,4 +145,4 @@ arena = Arena()
 arena.vehicle_loc = (22,33)
 #                       c           a     angle B
 arena.add_by_corner(1, 39.661,'C',  27.803,  94)
-
+arena.get_names()
