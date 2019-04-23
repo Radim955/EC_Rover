@@ -1,7 +1,7 @@
 /***********************************
- * Firmware for Arduino, team Alpha
- * Author: Radim Lipka
- * Date:   19.4.2019
+   Firmware for Arduino, team Alpha
+   Author: Radim Lipka
+   Date:   19.4.2019
  ***********************************/
 // =================== LIBS ===================
 #include <Servo.h>
@@ -57,17 +57,18 @@ bool motorBdirection = MOTOR_FORWARD;
 #define MOTOR_NON_WORKING_PERIOD (MOTOR_PERIOD - MOTOR_WORKING_PERIOD)
 
 #if MOTOR_WORKING_PERIOD != MOTOR_PERIOD
-  #warning "You are using PWM!"
+#warning "You are using PWM!"
 #endif
 
 unsigned long motorTimer = 0;
-bool motorsRunning       = true;
+bool motorARunning       = true;
+bool motorBRunning       = true;
 
 // ================== SERVOS ==================
 
-#define SERVO_DEGREES_0    15
-#define SERVO_DEGREES_90   95
-#define SERVO_DEGREES_180  175
+#define SERVO_DEGREES_0    13
+#define SERVO_DEGREES_90   90
+#define SERVO_DEGREES_180  170
 
 #define SERVO_FIX_INACCURACY(VALUE, LOWEST, HIGHEST) (LOWEST + (VALUE * (HIGHEST - LOWEST) / 90))
 
@@ -93,7 +94,7 @@ bool stateCommandLed = false;
 
 // =============== DEFINITIONS ================
 void processLeds();
-void arrayInit(String * inArray, unsigned int stringSize); 
+void arrayInit(String * inArray, unsigned int stringSize);
 void processServos();
 void processMotor();
 
@@ -101,7 +102,7 @@ void processMotor();
 // === THE CODE   =============================
 // ********************************************
 
-void setup() 
+void setup()
 {
   Serial.begin(115200);
 
@@ -118,7 +119,7 @@ void setup()
   digitalWrite(PIN_MOTOR_B_DIRECTION, motorBdirection);
   analogWrite(PIN_MOTOR_A_SPEED, MOTOR_ZERO_SPEED);
   analogWrite(PIN_MOTOR_B_SPEED, MOTOR_ZERO_SPEED);
-  
+
   pinMode(PIN_LED_ALIVE,   OUTPUT);
   pinMode(PIN_LED_COMMAND, OUTPUT);
 
@@ -126,7 +127,7 @@ void setup()
   servoB.attach(PIN_SERVO_B);
 }
 
-void loop() 
+void loop()
 {
   processLeds();
   processServos();
@@ -144,57 +145,37 @@ void processMotors()
   digitalWrite(PIN_MOTOR_A_DIRECTION, motorAdirection);
   digitalWrite(PIN_MOTOR_B_DIRECTION, motorBdirection);
 
-  if(motorAtime > millis())
+  if ((motorAtime > millis()))
   {
-    if((motorTimer < millis()) && motorsRunning)
-    {
-      analogWrite(PIN_MOTOR_A_SPEED, MOTOR_ZERO_SPEED);
-      motorsRunning = false;
-      motorTimer = millis() + MOTOR_NON_WORKING_PERIOD;
-    } else if ((motorTimer < millis()) && !motorsRunning)
-    {
-      analogWrite(PIN_MOTOR_A_SPEED, motorApower);
-      motorsRunning = true;
-      motorTimer = millis() + MOTOR_WORKING_PERIOD;
-    }
-    
-    //analogWrite(PIN_MOTOR_A_SPEED, motorApower);
+    analogWrite(PIN_MOTOR_A_SPEED, motorApower);
+    motorARunning = true;
   } else
   {
     analogWrite(PIN_MOTOR_A_SPEED, MOTOR_ZERO_SPEED);
+    motorARunning = false;
   }
 
-  if(motorBtime > millis())
+  if ((motorBtime > millis()))
   {
-    if((motorTimer < millis()) && motorsRunning)
-    {
-      analogWrite(PIN_MOTOR_B_SPEED, MOTOR_ZERO_SPEED);
-      motorsRunning = false;
-      motorTimer = millis() + MOTOR_NON_WORKING_PERIOD;
-    } else if ((motorTimer < millis()) && !motorsRunning)
-    {
-      analogWrite(PIN_MOTOR_B_SPEED, motorBpower);
-      motorsRunning = true;
-      motorTimer = millis() + MOTOR_WORKING_PERIOD;
-    }
-    
-    //analogWrite(PIN_MOTOR_B_SPEED, motorBpower);
+    analogWrite(PIN_MOTOR_B_SPEED, motorBpower);
+    motorBRunning = true;
   } else
   {
     analogWrite(PIN_MOTOR_B_SPEED, MOTOR_ZERO_SPEED);
+    motorBRunning = false;
   }
 }
 
 void processLeds()
 {
-  if(timerAlive < millis()) 
+  if (timerAlive < millis())
   {
     timerAlive = millis() + DELAY_TIMER_ALIVE;
     stateAliveLed = stateAliveLed ? false : true; // Toggle boolean value
     digitalWrite(PIN_LED_ALIVE, stateAliveLed);
   }
 
-  if((timerCommand < millis()) && stateCommandLed)
+  if ((timerCommand < millis()) && stateCommandLed)
   {
     stateCommandLed = false;
     digitalWrite(PIN_LED_COMMAND, stateCommandLed);
@@ -209,9 +190,9 @@ void everythingStop()
   analogWrite(PIN_MOTOR_B_SPEED, MOTOR_ZERO_SPEED);
 }
 
-void arrayInit(String * inArray, unsigned int stringSize) 
+void arrayInit(String * inArray, unsigned int stringSize)
 {
-  for(int i = 0; i != stringSize; i++)
+  for (int i = 0; i != stringSize; i++)
     inArray[i] = "";
 }
 
@@ -219,21 +200,21 @@ void arrayInit(String * inArray, unsigned int stringSize)
 // === INTERRUPTS   ===========================
 // ********************************************
 
-void serialEvent() 
+void serialEvent()
 {
-  while(Serial.available())
+  while (Serial.available())
   {
     timerCommand = millis() + DELAY_TIMER_COMMAND;
     stateCommandLed = true;
     digitalWrite(PIN_LED_COMMAND, stateCommandLed);
 
     char inChar = (char)Serial.read();
-    if (inChar == '\n' || inChar == '\0') 
+    if (inChar == '\n' || inChar == '\0')
     {
       serialInputBuffer[serialInputBufferPtr] += '\0';
 
       // Handle commands referring to motors M F 255 9999 B 0 0
-      if(serialInputBuffer[0] == "M" && serialInputBufferPtr >= 6)
+      if (serialInputBuffer[0] == "M" && serialInputBufferPtr >= 6)
       {
         motorAdirection = (serialInputBuffer[1] == "F" ? MOTOR_FORWARD : MOTOR_BACKWARD);
         motorApower = serialInputBuffer[2].toInt();
@@ -241,67 +222,69 @@ void serialEvent()
         motorBdirection = (serialInputBuffer[4] == "F" ? MOTOR_FORWARD : MOTOR_BACKWARD);
         motorBpower = serialInputBuffer[5].toInt();
         motorBtime = millis() + serialInputBuffer[6].toInt();
-        if(motorApower > 254) motorApower = 255;
-        if(motorApower < 0) motorApower = 0;
-        if(motorBpower > 254) motorBpower = 255;
-        if(motorBpower < 0) motorBpower = 0;
-        
+        if (motorApower > 254) motorApower = 255;
+        if (motorApower < 0) motorApower = 0;
+        if (motorBpower > 254) motorBpower = 255;
+        if (motorBpower < 0) motorBpower = 0;
+
+        Serial.println(motorAdirection);
+        Serial.println(motorBdirection);
         Serial.println("OK - Motor CMD");
 
-      // Handle commands referring to servos S 90 90
-      } else if(serialInputBuffer[0] == "S" && serialInputBufferPtr == 2)
+        // Handle commands referring to servos S 90 90
+      } else if (serialInputBuffer[0] == "S" && serialInputBufferPtr == 2)
       {
         servoAval = serialInputBuffer[1].toInt();
         servoBval = serialInputBuffer[2].toInt();
-        if(servoAval > 180) servoAval = 180;
-        if(servoAval < 0) servoAval = 0;
-        if(servoBval > 180) servoBval = 180;
-        if(servoBval < 0) servoBval = 0;
+        if (servoAval > 180) servoAval = 180;
+        if (servoAval < 0) servoAval = 0;
+        if (servoBval > 180) servoBval = 180;
+        if (servoBval < 0) servoBval = 0;
 
         // Fixing inaccuracy of servo motors
-        if(servoAval < 90)
+        if (servoAval < 90)
           servoAval = SERVO_FIX_INACCURACY(servoAval, SERVO_DEGREES_0, SERVO_DEGREES_90);
-        else 
+        else
           servoAval = SERVO_FIX_INACCURACY(servoAval - 90, SERVO_DEGREES_90, SERVO_DEGREES_180);
 
-        if(servoBval < 90)
+        if (servoBval < 90)
           servoBval = SERVO_FIX_INACCURACY(servoBval, SERVO_DEGREES_0, SERVO_DEGREES_90);
-        else 
+        else
           servoBval = SERVO_FIX_INACCURACY(servoBval - 90, SERVO_DEGREES_90, SERVO_DEGREES_180);
 
         Serial.println("OK - Servo CMD");
 
-      // Handle commands referring to controll C STOP
-      } else if(serialInputBuffer[0] == "C" && serialInputBufferPtr == 1)
+        // Handle commands referring to controll C STOP
+      } else if (serialInputBuffer[0] == "C" && serialInputBufferPtr == 1)
       {
-        if(serialInputBuffer[1] == "STOP")
+        if (serialInputBuffer[1] == "STOP")
         {
           everythingStop();
-          Serial.println("OK - Control CMD STOP"); 
+          Serial.println("OK - Control CMD STOP");
         } else
         {
           Serial.println("FAIL - Control CMD unrecognized");
         }
-      } else 
+      } else
       {
         Serial.print("ERR - Unrecognized command: ");
-        for(int i = 0; i != MAX_PARAMS; i++)
+        for (int i = 0; i != MAX_PARAMS; i++)
           Serial.print(serialInputBuffer[i]);
         Serial.println(" ");
       }
-      
+
       serialInputBufferPtr = 0;
       arrayInit(serialInputBuffer, MAX_PARAMS);
-    } else if(inChar == ' ')
+    } else if (inChar == ' ')
     {
       serialInputBuffer[serialInputBufferPtr] += '\0';
       serialInputBufferPtr++;
-      if(serialInputBufferPtr >= MAX_PARAMS)
+      if (serialInputBufferPtr >= MAX_PARAMS)
       {
         Serial.println("ERR - Serial Input buffer OVERFLOW!");
         serialInputBufferPtr = 0;
       }
-    } else 
+    } else
     {
       serialInputBuffer[serialInputBufferPtr] += inChar;
     }
