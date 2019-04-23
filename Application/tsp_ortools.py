@@ -17,7 +17,7 @@ def create_data_model():
     data = {}
     # Locations in block units
     #HERE WE PUT THE COORDINATES OF DISCOVERED OBJECTS:
-    data['locations'] = [(249,125), (125,100), (50,2), (25,125), (46,89), (123, 199), (22,125), (125,99), (50,10), (77,125), (88,89), (123, 222)]  # yapf: disable
+    data['locations'] = [(125, 250), (123, 45), (54, 158)]  # yapf: disable
     data['num_vehicles'] = 1
     data['depot'] = 0
     return data

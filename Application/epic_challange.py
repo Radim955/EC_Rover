@@ -9,12 +9,112 @@ import numpy as np
 import math
 from math import sin, cos, radians
 
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Apr  3 16:46:21 2019
+
+@author: roman
+"""
+
+"""Simple travelling salesman problem on a circuit board."""
+
+import math
+from ortools.constraint_solver import routing_enums_pb2
+from ortools.constraint_solver import pywrapcp
+
+
+def create_data_model(objects):
+    """Stores the data for the problem."""
+    data = {}
+    # Locations in block units
+    #HERE WE PUT THE COORDINATES OF DISCOVERED OBJECTS:
+    data['locations'] = objects  # yapf: disable
+    data['num_vehicles'] = 1
+    data['depot'] = 0
+    return data
+
+
+def compute_euclidean_distance_matrix(locations):
+    """Creates callback to return distance between points."""
+    distances = {}
+    for from_counter, from_node in enumerate(locations):
+        distances[from_counter] = {}
+        for to_counter, to_node in enumerate(locations):
+            if from_counter == to_counter:
+                distances[from_counter][to_counter] = 0
+            else:
+                # Euclidean distance
+                distances[from_counter][to_counter] = (int(
+                    math.hypot((from_node[0] - to_node[0]),
+                               (from_node[1] - to_node[1]))))
+    return distances
+
+
+def print_solution(manager, routing, assignment):
+    """Prints assignment on console."""
+    print('Objective: {}cm'.format(assignment.ObjectiveValue()))
+    index = routing.Start(0)
+    plan_output = 'Route:\n'
+    route_distance = 0
+    while not routing.IsEnd(index):
+        plan_output += ' {} ->'.format(manager.IndexToNode(index))
+        previous_index = index
+        index = assignment.Value(routing.NextVar(index))
+        route_distance += routing.GetArcCostForVehicle(previous_index, index, 0)
+    plan_output += ' {}\n'.format(manager.IndexToNode(index))
+    print(plan_output)
+    plan_output += 'Objective: {}m\n'.format(route_distance)
+
+
+def main(objects):
+    """Entry point of the program."""
+    # Instantiate the data problem.
+    data = create_data_model(objects)
+
+    # Create the routing index manager.
+    manager = pywrapcp.RoutingIndexManager(
+        len(data['locations']), data['num_vehicles'], data['depot'])
+
+    # Create Routing Model.
+    routing = pywrapcp.RoutingModel(manager)
+
+    distance_matrix = compute_euclidean_distance_matrix(data['locations'])
+
+    def distance_callback(from_index, to_index):
+        """Returns the distance between the two nodes."""
+        # Convert from routing variable Index to distance matrix NodeIndex.
+        from_node = manager.IndexToNode(from_index)
+        to_node = manager.IndexToNode(to_index)
+        return distance_matrix[from_node][to_node]
+
+    transit_callback_index = routing.RegisterTransitCallback(distance_callback)
+
+    # Define cost of each arc.
+    routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+
+    # Setting first solution heuristic.
+    search_parameters = pywrapcp.DefaultRoutingSearchParameters()
+    search_parameters.first_solution_strategy = (
+        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+
+    # Solve the problem.
+    assignment = routing.SolveWithParameters(search_parameters)
+
+    # Print solution on console.
+    if assignment:
+        print_solution(manager, routing, assignment)
+
+
+#if __name__ == '__main__':
+    #main()
+
+
 class Arena:
-    def __init__(self, size=250, scale=1, start=(249, 125)):
+    def __init__(self, size=250, scale=1, start=(125, 250)):
         self.size = size
         self.scale = scale
         self.objects = [start]
-        self.object_names = ['S']
+        self.object_names = ['Start']
         self.vehicle_loc = start
 
     #corners are numbered 1..2  
@@ -99,7 +199,8 @@ class Arena:
         return
         
     def find_route(self):
-        #use TSP solution from the other code here? 
+        main(self.objects)
+        self.get_names()
         return
     
     def get_corner(self, corner):
@@ -116,6 +217,14 @@ class Arena:
     def get_names(self):
         for i,a in enumerate(self.object_names):
             print("%d --> %s" % (i, a))
+
+    def add_obj(self, name, x, y):
+        self.objects += [(x,y)]
+        self.object_names += [name]
+
+    def list_obj(self):
+        for o, n in zip(self.objects, self.object_names):
+            print("%s --> %s" % (n, o))
 
 #calculate distance between two objects, given their distances (a, b) from the
 #vehicle and angle between them
@@ -145,7 +254,6 @@ def rotate_point(point, angle, center_point=(0, 0)):
 #PLAYGROUND
 """ get test inputs from https://www.triangle-calculator.com/?what=vc"""
 arena = Arena()
-arena.vehicle_loc = (22,33)
-#                       c           a     angle B
-arena.add_by_corner(1, 39.661,'C',  27.803,  94)
-arena.get_names()
+arena.add_obj('A', 213, 127)
+arena.add_obj('B', 22, 33)
+arena.find_route()
