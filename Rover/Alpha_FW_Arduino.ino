@@ -126,8 +126,6 @@ void loop()
 
 void processServos()
 {
-  servoAval=Angle_0+(servoAval*((Angle_180-Angle_0)/180));
-  servoBval=Angle_0+(servoBval*((Angle_180-Angle_0)/180));
   servoA.write(servoAval);
   servoB.write(servoBval);
 }
@@ -251,6 +249,10 @@ void serialEvent()
         if(servoBval > 180) servoBval = 180;
         if(servoBval < 0) servoBval = 0;
 
+        servoAval = Angle_0+(servoAval*((Angle_180-Angle_0)/180.0));
+        servoBval = Angle_0+(servoBval*((Angle_180-Angle_0)/180.0)); 
+        //Serial.println(servoAval);
+        //Serial.println(servoBval);
         Serial.println("OK - Servo CMD");
 
       // Handle commands referring to controll C STOP
