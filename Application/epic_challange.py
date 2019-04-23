@@ -51,23 +51,23 @@ def compute_euclidean_distance_matrix(locations):
     return distances
 
 
-def print_solution(manager, routing, assignment):
+def print_solution(manager, routing, assignment, labels):
     """Prints assignment on console."""
-    print('Objective: {}cm'.format(assignment.ObjectiveValue()))
+    print('Distance: {}cm'.format(assignment.ObjectiveValue()))
     index = routing.Start(0)
     plan_output = 'Route:\n'
     route_distance = 0
     while not routing.IsEnd(index):
-        plan_output += ' {} ->'.format(manager.IndexToNode(index))
+        plan_output += ' {} ->'.format(labels[index])
         previous_index = index
         index = assignment.Value(routing.NextVar(index))
         route_distance += routing.GetArcCostForVehicle(previous_index, index, 0)
-    plan_output += ' {}\n'.format(manager.IndexToNode(index))
+    plan_output += ' {}\n'.format(labels[0])
     print(plan_output)
     plan_output += 'Objective: {}m\n'.format(route_distance)
 
 
-def main(objects):
+def main(objects, labels):
     """Entry point of the program."""
     # Instantiate the data problem.
     data = create_data_model(objects)
@@ -103,12 +103,7 @@ def main(objects):
 
     # Print solution on console.
     if assignment:
-        print_solution(manager, routing, assignment)
-
-
-#if __name__ == '__main__':
-    #main()
-
+        print_solution(manager, routing, assignment, labels)
 
 class Arena:
     def __init__(self, size=250, scale=1, start=(125, 250)):
@@ -200,8 +195,7 @@ class Arena:
         return
         
     def find_route(self):
-        main(self.objects)
-        self.get_names()
+        main(self.objects, self.object_names)
         return
     
     def get_corner(self, corner):
