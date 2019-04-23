@@ -23,6 +23,10 @@
 #define PIN_SERVO_A     4
 #define PIN_SERVO_B     5
 
+// angles for servo motors
+#define Angle_0  15
+#define Angle_90  95
+#define Angle_180 175
 // ================== TIMERS ==================
 // LED diods
 #define DELAY_TIMER_ALIVE   250
@@ -122,6 +126,8 @@ void loop()
 
 void processServos()
 {
+  servoAval=Angle_0+(servoAval*((Angle_180-Angle_0)/180));
+  servoBval=Angle_0+(servoBval*((Angle_180-Angle_0)/180));
   servoA.write(servoAval);
   servoB.write(servoBval);
 }
