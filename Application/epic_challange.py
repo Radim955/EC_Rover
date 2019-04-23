@@ -8,6 +8,7 @@ Created on Fri Mar 29 20:32:46 2019
 import numpy as np
 import math
 from math import sin, cos, radians
+import matplotlib.pyplot as plt
 
 # -*- coding: utf-8 -*-
 """
@@ -226,6 +227,17 @@ class Arena:
         for o, n in zip(self.objects, self.object_names):
             print("%s --> %s" % (n, o))
 
+    def show(self):
+        plt.figure()
+        plt.axis([0,250,0,250])
+        plt.grid(False)
+        plt.scatter(*zip(*self.objects))
+        ax=plt.gca()                            # get the axis
+        ax.set_ylim(ax.get_ylim()[::-1])        # invert the axis
+        ax.xaxis.tick_top()                     # and move the X-Axis      
+        ax.yaxis.tick_left()
+        plt.show()
+
 #calculate distance between two objects, given their distances (a, b) from the
 #vehicle and angle between them
 def distance(a, b, angle):
@@ -254,6 +266,16 @@ def rotate_point(point, angle, center_point=(0, 0)):
 #PLAYGROUND
 """ get test inputs from https://www.triangle-calculator.com/?what=vc"""
 arena = Arena()
-arena.add_obj('A', 213, 127)
-arena.add_obj('B', 22, 33)
+arena.add_obj('A', 30, 250-55)
+arena.add_obj('B', 140, 250-126)
+arena.add_obj('C', 65, 74)
+arena.add_obj('D', 100+65, 120)
+arena.add_obj('E', 250-42, 250-45)
+arena.add_obj('F', 250-58, 10)
+arena.add_obj('G', 250-100, 250-78)
+arena.add_obj('H', 48, 55)
+arena.add_obj('I', 16, 20)
+arena.add_obj('J', 250-88, 28)
 arena.find_route()
+arena.show()
+#928 expected
