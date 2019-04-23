@@ -49,6 +49,13 @@ unsigned int motorBpower = 0;
 bool motorAdirection = MOTOR_FORWARD;
 bool motorBdirection = MOTOR_FORWARD;
 
+#define MOTOR_PERIOD            3
+#define MOTOR_WORKING_PERIOD    1
+#define MOTOR_NON_WORKING_PERIOD (MOTOR_PERIOD - MOTOR_WORKING_PERIOD)
+
+unsigned long motorTimer = 0;
+bool motorsRunning       = true;
+
 // ================== SERVOS ==================
 
 short unsigned int servoAdegrees = 0;
@@ -126,7 +133,19 @@ void processMotors()
 
   if(motorAtime > millis())
   {
-    analogWrite(PIN_MOTOR_A_SPEED, motorApower);
+    if((motorTimer < millis()) && motorsRunning)
+    {
+      analogWrite(PIN_MOTOR_A_SPEED, MOTOR_ZERO_SPEED);
+      motorsRunning = false;
+      motorTimer = millis() + MOTOR_NON_WORKING_PERIOD;
+    } else if ((motorTimer < millis()) && !motorsRunning)
+    {
+      analogWrite(PIN_MOTOR_A_SPEED, motorApower);
+      motorsRunning = true;
+      motorTimer = millis() + MOTOR_WORKING_PERIOD;
+    }
+    
+    //analogWrite(PIN_MOTOR_A_SPEED, motorApower);
   } else
   {
     analogWrite(PIN_MOTOR_A_SPEED, MOTOR_ZERO_SPEED);
@@ -134,7 +153,19 @@ void processMotors()
 
   if(motorBtime > millis())
   {
-    analogWrite(PIN_MOTOR_B_SPEED, motorBpower);
+    if((motorTimer < millis()) && motorsRunning)
+    {
+      analogWrite(PIN_MOTOR_B_SPEED, MOTOR_ZERO_SPEED);
+      motorsRunning = false;
+      motorTimer = millis() + MOTOR_NON_WORKING_PERIOD;
+    } else if ((motorTimer < millis()) && !motorsRunning)
+    {
+      analogWrite(PIN_MOTOR_B_SPEED, motorBpower);
+      motorsRunning = true;
+      motorTimer = millis() + MOTOR_WORKING_PERIOD;
+    }
+    
+    //analogWrite(PIN_MOTOR_B_SPEED, motorBpower);
   } else
   {
     analogWrite(PIN_MOTOR_B_SPEED, MOTOR_ZERO_SPEED);
