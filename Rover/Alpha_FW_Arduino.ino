@@ -6,6 +6,9 @@
 // =================== LIBS ===================
 #include <Servo.h>
 
+// ================= IMPORTANT ================
+// #define MOTORS_USING_PWM
+
 // =================== PINS ===================
 // Motors
 #define PIN_MOTOR_A_BRAKE       9
@@ -23,10 +26,6 @@
 #define PIN_SERVO_A     4
 #define PIN_SERVO_B     5
 
-// angles for servo motors
-#define Angle_0  15
-#define Angle_90  95
-#define Angle_180 175
 // ================== TIMERS ==================
 // LED diods
 #define DELAY_TIMER_ALIVE   250
@@ -53,14 +52,24 @@ unsigned int motorBpower = 0;
 bool motorAdirection = MOTOR_FORWARD;
 bool motorBdirection = MOTOR_FORWARD;
 
-#define MOTOR_PERIOD            3
-#define MOTOR_WORKING_PERIOD    1
+#define MOTOR_PERIOD            10
+#define MOTOR_WORKING_PERIOD    10
 #define MOTOR_NON_WORKING_PERIOD (MOTOR_PERIOD - MOTOR_WORKING_PERIOD)
+
+#if MOTOR_WORKING_PERIOD != MOTOR_PERIOD
+  #warning "You are using PWM!"
+#endif
 
 unsigned long motorTimer = 0;
 bool motorsRunning       = true;
 
 // ================== SERVOS ==================
+
+#define SERVO_DEGREES_0    15
+#define SERVO_DEGREES_90   95
+#define SERVO_DEGREES_180  175
+
+#define SERVO_FIX_INACCURACY(VALUE, LOWEST, HIGHEST) (LOWEST + (VALUE * (HIGHEST - LOWEST) / 90))
 
 short unsigned int servoAdegrees = 0;
 short unsigned int servoBdegrees = 0;
@@ -249,10 +258,17 @@ void serialEvent()
         if(servoBval > 180) servoBval = 180;
         if(servoBval < 0) servoBval = 0;
 
-        servoAval = Angle_0+(servoAval*((Angle_180-Angle_0)/180.0));
-        servoBval = Angle_0+(servoBval*((Angle_180-Angle_0)/180.0)); 
-        //Serial.println(servoAval);
-        //Serial.println(servoBval);
+        // Fixing inaccuracy of servo motors
+        if(servoAval < 90)
+          servoAval = SERVO_FIX_INACCURACY(servoAval, SERVO_DEGREES_0, SERVO_DEGREES_90);
+        else 
+          servoAval = SERVO_FIX_INACCURACY(servoAval - 90, SERVO_DEGREES_90, SERVO_DEGREES_180);
+
+        if(servoBval < 90)
+          servoBval = SERVO_FIX_INACCURACY(servoBval, SERVO_DEGREES_0, SERVO_DEGREES_90);
+        else 
+          servoBval = SERVO_FIX_INACCURACY(servoBval - 90, SERVO_DEGREES_90, SERVO_DEGREES_180);
+
         Serial.println("OK - Servo CMD");
 
       // Handle commands referring to controll C STOP
