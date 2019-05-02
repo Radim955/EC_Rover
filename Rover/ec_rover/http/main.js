@@ -1,6 +1,6 @@
 function main() {
     
-    var MAXLOGLINES = 6;
+    var MAXLOGLINES = 15;
     
     var logElem = document.querySelector('.logcntnr .log')
         , readlineElem = document.querySelector('.logcntnr input')

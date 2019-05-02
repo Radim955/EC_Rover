@@ -23,13 +23,32 @@ Remove this if you use the .htaccess -->
  <a class="hide-controls"><button>Hide controls</button></a>
 </div>
 
-<div class=roverview>
- <div class="webcam" class="">
-  <img src="/cam/?action=stream" />
- </div>
-
- <canvas id="controlCanvas"></canvas>
+<div>
+ <canvas id="controlCanvas" style="border:1px solid #000000;"></canvas>
 </div>
+
+<script>
+function changeServoDegree(degree) {
+	window.globals.sendData("S " + degree + " " + degree);
+	document.getElementById("Degrees").innerHTML = "Degrees: " + (-1 * (degree - 90)).toString();
+}
+
+function stopCommand() {
+   window.globals.sendData("C STOP");
+}
+</script>
+
+<table style="width:100%">
+<tr>
+<td><button class="button1" type="button" width="100%" onClick="stopCommand(0)">STOP</button></td> 
+<td><button class="button1" type="button" onClick="changeServoDegree(180)">-90</button></td> 
+<td><button class="button1" type="button" onClick="changeServoDegree(135)">-45</button></td> 
+<td><button class="button1" type="button" onClick="changeServoDegree(90)">0</button></td>
+<td><button class="button1" type="button" onClick="changeServoDegree(45)">45</button></td>
+<td><button class="button1" type="button" onClick="changeServoDegree(0)">90</button></td>
+<td width="120px"><b><span id="Degrees">Degrees: 0</span></b></td>
+</tr>
+</table>
 
 <div class="logcntnr">
  <fieldset>
@@ -43,9 +62,16 @@ Remove this if you use the .htaccess -->
 
 <div id="control" class="row fill tab-pane active col-lg-1 col-centered" style="height: 100%;"></div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="/static/js/jquery-2.1.1.min.js"></script>
 <script src="/static/js/paper-full-min.js"></script>
 
+<script>
+controlCanvas.width = window.innerWidth;
+//controlCanvas.height = window.innerHeight * 0.7;
+controlCanvas.height = 240;
+</script>
+
+</script>
 <script type="text/paperscript" src="/main.paperscript.js" canvas="controlCanvas"></script>
 <script type="text/javascript" src="/main.js"></script>
 
