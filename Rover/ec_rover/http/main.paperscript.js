@@ -29,6 +29,7 @@ var sendMotorCommand = false;
 var sendCamCommand = false;
 var mVector;
 var vectorLine;
+var keyCode = 0;
 
 var lastServoPosition = 90;
 
@@ -104,14 +105,17 @@ function onFrame(event){
 */
   //Translate mVector values into motor powers and directions
   if(event.count % 5  == 0){
-    if(sendMotorCommand){
+    if(sendMotorCommand){/*
         var force = (mVector.length/(joySize / 2));
         var m1Pow = 512*Math.sin(mVector.rotate(-45).angleInRadians);
         var m2Pow = 512*Math.cos(mVector.rotate(-45).angleInRadians);
-	console.log("force " + force + " m1 " + m1Pow + " m2 " + m2Pow);
+	console.log("force " + force + " m1 " + m1Pow + " m2 " + m2Pow);*/
+
 
 	//var m1Pow = mVector.x / joySize;
 	//var m2Pow = mVector.y / joySize;
+        var m1Pow = 512;
+        var m2Pow = 512;
         var m1Dir = "F";
         var m2Dir = "F";
         if(m1Pow < 0){
@@ -121,6 +125,21 @@ function onFrame(event){
         if(m2Pow < 0){
         m2Pow = -m2Pow;
         m2Dir = "B";
+        }
+
+        switch(keyCode) {
+            case 37:
+                m1Dir = "B";
+                break;
+            case 38:
+                break;
+            case 39:
+                m2Dir = "B";
+                break;
+            case 40:
+                m1Dir = "B";
+                m2Dir = "B";
+                break;
         }
 	//console.log(m1Pow + " " + m2Pow);
         if(m1Pow >= 512) m1Pow = 512;
@@ -158,3 +177,24 @@ function drawVector(vector){
   vectorLine.strokeWidth = 10;
   vectorLine.strokeColor = '#FFFFFF';
 }
+
+document.onkeydown = function(event) {
+    if (event.key == 37 || event.key == 38 || event.key == 39 || event.key == 40){
+        keyCode = event.key;
+        sendMotorCommand = true;
+    }
+    /*switch (event.key) {
+        case 37:
+            Left
+            break;
+        case 38:
+            alert('Up key pressed');
+            break;
+        case 39:
+            alert('Right key pressed');
+            break;
+        case 40:
+            alert('Down key pressed');
+            break;
+    }*/
+};
