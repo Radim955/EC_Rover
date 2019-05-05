@@ -60,6 +60,44 @@ unsigned long motorTimer = 0;
 bool motorARunning       = true;
 bool motorBRunning       = true;
 
+// =============== ALLIGNMENT =================
+
+#define ALLIG_PLUS_60_STRENGTH  255
+#define ALLIG_PLUS_60_DURATION  30
+#define ALLIG_PLUS_60_A_DIRECTION MOTOR_FORWARD
+#define ALLIG_PLUS_60_B_DIRECTION MOTOR_BACKWARD
+
+#define ALLIG_STEP_STRENGTH  250
+#define ALLIG_STEP_DURATION  5
+#define ALLIG_STEP_COUNT     10
+
+#define ALLIG_FINAL_STRENGTH  210
+#define ALLIG_FINAL_DURATION  70
+
+#define ALLIG_STEP_TRESH     1   // [cm]
+#define ALLIG_MAX_DISTANCE   500 // [cm]
+
+enum ALLIGNMENT_DIRECTION {
+  ALLIG_NONE = 0,
+  ALLIG_LEFT,
+  ALLIG_RIGHT,
+  ALLIG_UP,
+  ALLIG_DOWN
+};
+
+enum ALLIGNMENT_STATE {
+  ALLIG_STATE_NONE = 0,
+  ALLIG_STATE_INIT,
+  ALLIG_STATE_PHASE1,
+  ALLIG_STATE_PHASE2,
+  ALLIG_STATE_PHASE3,
+  ALLIG_STATE_PHASE4,
+};
+
+short alligState            = ALLIG_STATE_NONE;
+short alligDirection        = ALLIG_NONE;
+float alligSmallestDistance = 0;
+
 // ================== SERVOS ==================
 
 #define SERVO_DEGREES_0    13
@@ -329,6 +367,26 @@ float getUltrasonicValue(short site)
   return(duration*0.034/2);
 }
 
+float getUltrasonicValue(short site)
+{
+  static long duration = 0;
+  
+  // Clears the trigPin
+  digitalWrite(PIN_ULTRA_LEFT_TRIG, LOW);
+  delayMicroseconds(2);
+  
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(PIN_ULTRA_LEFT_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_ULTRA_LEFT_TRIG, LOW);
+  
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(PIN_ULTRA_LEFT_ECHO, HIGH);
+  
+  // Calculating the distance
+  return(duration*0.034/2);
+}
+
 void arrayInit(String * inArray, unsigned int stringSize)
 {
   for (int i = 0; i != stringSize; i++)
@@ -355,6 +413,12 @@ void serialEvent()
       // Handle commands referring to motors M F 255 9999 B 0 0
       if (serialInputBuffer[0] == "M" && serialInputBufferPtr >= 6)
       {
+        if(alligState != ALLIG_NONE)
+        {
+          Serial.println("ERR: Allignment command running. Cannot set speed. Wait!");
+          return;
+        }
+
         motorAdirection = (serialInputBuffer[1] == "F" ? MOTOR_FORWARD : MOTOR_BACKWARD);
         motorApower = serialInputBuffer[2].toInt();
         motorAtime = millis() + serialInputBuffer[3].toInt();
