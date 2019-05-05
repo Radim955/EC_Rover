@@ -26,6 +26,10 @@
 #define PIN_SERVO_A     4
 #define PIN_SERVO_B     5
 
+// Ultrasonics
+#define PIN_ULTRA_LEFT_ECHO  2
+#define PIN_ULTRA_LEFT_TRIG  1
+
 // ================== TIMERS ==================
 // LED diods
 #define DELAY_TIMER_ALIVE   250
@@ -64,6 +68,44 @@ unsigned long motorTimer = 0;
 bool motorARunning       = true;
 bool motorBRunning       = true;
 
+// =============== ALLIGNMENT =================
+
+#define ALLIG_PLUS_60_STRENGTH  255
+#define ALLIG_PLUS_60_DURATION  30
+#define ALLIG_PLUS_60_A_DIRECTION MOTOR_FORWARD
+#define ALLIG_PLUS_60_B_DIRECTION MOTOR_BACKWARD
+
+#define ALLIG_STEP_STRENGTH  250
+#define ALLIG_STEP_DURATION  5
+#define ALLIG_STEP_COUNT     10
+
+#define ALLIG_FINAL_STRENGTH  210
+#define ALLIG_FINAL_DURATION  70
+
+#define ALLIG_STEP_TRESH     1   // [cm]
+#define ALLIG_MAX_DISTANCE   500 // [cm]
+
+enum ALLIGNMENT_DIRECTION {
+  ALLIG_NONE = 0,
+  ALLIG_LEFT,
+  ALLIG_RIGHT,
+  ALLIG_UP,
+  ALLIG_DOWN
+};
+
+enum ALLIGNMENT_STATE {
+  ALLIG_STATE_NONE = 0,
+  ALLIG_STATE_INIT,
+  ALLIG_STATE_PHASE1,
+  ALLIG_STATE_PHASE2,
+  ALLIG_STATE_PHASE3,
+  ALLIG_STATE_PHASE4,
+};
+
+short alligState            = ALLIG_STATE_NONE;
+short alligDirection        = ALLIG_NONE;
+float alligSmallestDistance = 0;
+
 // ================== SERVOS ==================
 
 #define SERVO_DEGREES_0    13
@@ -94,9 +136,13 @@ bool stateCommandLed = false;
 
 // =============== DEFINITIONS ================
 void processLeds();
-void arrayInit(String * inArray, unsigned int stringSize);
 void processServos();
 void processMotor();
+void processAlignments();
+
+void arrayInit(String * inArray, unsigned int stringSize);
+float getUltrasonicValue(short site);
+void everythingStop();
 
 // ********************************************
 // === THE CODE   =============================
@@ -132,6 +178,7 @@ void loop()
   processLeds();
   processServos();
   processMotors();
+  processAlignments();
 }
 
 void processServos()
@@ -166,6 +213,81 @@ void processMotors()
   }
 }
 
+void processAlignments()
+{
+  static short alligCounter        = 0;
+
+  switch(alligState)
+  {
+    // Turn -60 degrees
+    case ALLIG_STATE_INIT:
+      motorApower     = ALLIG_PLUS_60_STRENGTH;
+      motorAdirection = ALLIG_PLUS_60_A_DIRECTION;
+      motorBpower     = ALLIG_PLUS_60_STRENGTH;
+      motorBdirection = ALLIG_PLUS_60_B_DIRECTION;
+      motorAtime = motorBtime = millis() + ALLIG_PLUS_60_DURATION;
+
+      alligState            = ALLIG_STATE_PHASE1;
+
+    // Waiting + settings
+    case ALLIG_STATE_PHASE1:
+      if(motorAtime < millis())
+      {
+        alligSmallestDistance = ALLIG_MAX_DISTANCE;
+        motorAdirection = motorAdirection == MOTOR_FORWARD ? MOTOR_BACKWARD : MOTOR_FORWARD;
+        motorBdirection = motorBdirection == MOTOR_FORWARD ? MOTOR_BACKWARD : MOTOR_FORWARD;       
+        alligCounter    = ALLIG_STEP_COUNT;
+        alligState      = ALLIG_STATE_PHASE2;
+      }
+
+    // Measurng the smallest distance
+    case ALLIG_STATE_PHASE2:
+      if(alligCounter == 0)
+      {
+        if(motorAtime > millis())
+          return;
+
+        alligState = ALLIG_STATE_PHASE4;
+        motorAdirection = motorAdirection == MOTOR_FORWARD ? MOTOR_BACKWARD : MOTOR_FORWARD;
+        motorBdirection = motorBdirection == MOTOR_FORWARD ? MOTOR_BACKWARD : MOTOR_FORWARD; 
+
+        motorApower     = ALLIG_FINAL_STRENGTH;
+        motorBpower     = ALLIG_FINAL_STRENGTH;
+        motorAtime = motorBtime = millis() + ALLIG_FINAL_DURATION;
+        return;
+      }
+      
+      motorApower     = ALLIG_STEP_STRENGTH;
+      motorBpower     = ALLIG_STEP_STRENGTH;
+      motorAtime = motorBtime = millis() + ALLIG_STEP_DURATION;
+
+      alligState = ALLIG_STATE_PHASE3;
+      
+    // Wait for one measurement
+    case ALLIG_STATE_PHASE3:
+      if(motorAtime < millis())
+      {
+        float distance = getUltrasonicValue(alligDirection);
+        if(distance < alligSmallestDistance)
+          alligSmallestDistance = distance;  
+          alligState = ALLIG_STATE_PHASE2;
+      }
+
+    case ALLIG_STATE_PHASE4:
+
+      if((ALLIG_STEP_TRESH + alligSmallestDistance) >= getUltrasonicValue(alligDirection))
+      {
+        everythingStop();
+        Serial.println("OK - Alligning Finished");
+      }
+      
+      alligState = ALLIG_STATE_NONE;
+
+    default:
+      return;
+  }
+}
+
 void processLeds()
 {
   if (timerAlive < millis())
@@ -188,6 +310,26 @@ void everythingStop()
   motorBpower = MOTOR_ZERO_SPEED;
   analogWrite(PIN_MOTOR_A_SPEED, MOTOR_ZERO_SPEED);
   analogWrite(PIN_MOTOR_B_SPEED, MOTOR_ZERO_SPEED);
+}
+
+float getUltrasonicValue(short site)
+{
+  static long duration = 0;
+  
+  // Clears the trigPin
+  digitalWrite(PIN_ULTRA_LEFT_TRIG, LOW);
+  delayMicroseconds(2);
+  
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(PIN_ULTRA_LEFT_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_ULTRA_LEFT_TRIG, LOW);
+  
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(PIN_ULTRA_LEFT_ECHO, HIGH);
+  
+  // Calculating the distance
+  return(duration*0.034/2);
 }
 
 void arrayInit(String * inArray, unsigned int stringSize)
@@ -216,6 +358,12 @@ void serialEvent()
       // Handle commands referring to motors M F 255 9999 B 0 0
       if (serialInputBuffer[0] == "M" && serialInputBufferPtr >= 6)
       {
+        if(alligState != ALLIG_NONE)
+        {
+          Serial.println("ERR: Allignment command running. Cannot set speed. Wait!");
+          return;
+        }
+
         motorAdirection = (serialInputBuffer[1] == "F" ? MOTOR_FORWARD : MOTOR_BACKWARD);
         motorApower = serialInputBuffer[2].toInt();
         motorAtime = millis() + serialInputBuffer[3].toInt();
@@ -265,6 +413,29 @@ void serialEvent()
         {
           Serial.println("FAIL - Control CMD unrecognized");
         }
+      } else if (serialInputBuffer[0] == "A" && serialInputBufferPtr == 1)
+      {
+        if(alligState != ALLIG_NONE)
+        { 
+          Serial.println("ERR - Cannot start Allignment. One already running!");
+          return;
+        }
+        if (serialInputBuffer[0] == "L")
+          alligDirection = ALLIG_LEFT;
+        /*else if(serialInputBuffer[0] == "R")
+          alligDirection = ALLIG_RIGHT;
+        else if(serialInputBuffer[0] == "U")
+          alligDirection = ALLIG_UP;
+        else if(serialInputBuffer[0] == "D")
+          alligDirection = ALLIG_DOWN;*/
+        else
+          Serial.print("ERR - Unrecognized allignment direction!");
+          return;
+        everythingStop();
+        alligState = ALLIG_STATE_INIT;
+        Serial.print("OK - Allignment CMD");
+        
+        // ERROR - set default (command array)
       } else
       {
         Serial.print("ERR - Unrecognized command: ");
@@ -272,9 +443,6 @@ void serialEvent()
           Serial.print(serialInputBuffer[i]);
         Serial.println(" ");
       }
-
-      serialInputBufferPtr = 0;
-      arrayInit(serialInputBuffer, MAX_PARAMS);
     } else if (inChar == ' ')
     {
       serialInputBuffer[serialInputBufferPtr] += '\0';
