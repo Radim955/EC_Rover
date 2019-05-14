@@ -100,7 +100,7 @@ float alligSmallestDistance = 0;
 
 // ================== SERVOS ==================
 
-#define SERVO_DEGREES_0    13
+#define SERVO_DEGREES_0    7
 #define SERVO_DEGREES_90   90
 #define SERVO_DEGREES_180  170
 
@@ -114,44 +114,6 @@ unsigned short servoBval = 90;
 
 Servo servoA;
 Servo servoB;
-
-// =============== ALLIGNMENT =================
-
-#define ALLIG_PLUS_60_STRENGTH  255
-#define ALLIG_PLUS_60_DURATION  100
-#define ALLIG_PLUS_60_A_DIRECTION MOTOR_FORWARD
-#define ALLIG_PLUS_60_B_DIRECTION MOTOR_BACKWARD
-
-#define ALLIG_STEP_STRENGTH  255
-#define ALLIG_STEP_DURATION  20
-#define ALLIG_STEP_COUNT     10
-
-#define ALLIG_FINAL_STRENGTH  210
-#define ALLIG_FINAL_DURATION  70
-
-#define ALLIG_STEP_TRESH     1   // [cm]
-#define ALLIG_MAX_DISTANCE   500 // [cm]
-
-enum ALLIGNMENT_DIRECTION {
-  ALLIG_NONE = 0,
-  ALLIG_LEFT,
-  ALLIG_RIGHT,
-  ALLIG_UP,
-  ALLIG_DOWN
-};
-
-enum ALLIGNMENT_STATE {
-  ALLIG_STATE_NONE = 0,
-  ALLIG_STATE_INIT,
-  ALLIG_STATE_PHASE1,
-  ALLIG_STATE_PHASE2,
-  ALLIG_STATE_PHASE3,
-  ALLIG_STATE_PHASE4,
-};
-
-short alligState            = ALLIG_STATE_NONE;
-short alligDirection        = ALLIG_NONE;
-float alligSmallestDistance = 0;
 
 // ================== SERIAL ==================
 
@@ -345,26 +307,6 @@ void everythingStop()
   analogWrite(PIN_MOTOR_B_SPEED, MOTOR_ZERO_SPEED);
   motorBtime = 0;
   motorAtime = 0;
-}
-
-float getUltrasonicValue(short site)
-{
-  static long duration = 0;
-  
-  // Clears the trigPin
-  digitalWrite(PIN_ULTRA_LEFT_TRIG, LOW);
-  delayMicroseconds(2);
-  
-  // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(PIN_ULTRA_LEFT_TRIG, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(PIN_ULTRA_LEFT_TRIG, LOW);
-  
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(PIN_ULTRA_LEFT_ECHO, HIGH);
-  
-  // Calculating the distance
-  return(duration*0.034/2);
 }
 
 float getUltrasonicValue(short site)
